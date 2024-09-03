@@ -1,37 +1,69 @@
-import { useEffect, useState } from "react"
-import {styled} from "styled-components"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {styled} from "styled-components";
 
-const Nav = () => {
+    const Nav = () => {
 
-    const [ show, setShow ] = useState("false");
+    const [searchValue, setSearchValue] = useState('')
 
-    const listener = () => {
-        if (window.scrollY > 50) {
-            setShow("true");
-        } else {
-            setShow("false");
-        }
+    const navigate = useNavigate()
+
+
+    const handleChange = (e) => {
+        setSearchValue(e.target.value)
+        navigate(`/search?q=${e.target.value}`)
     }
 
-    useEffect(() => {
-        window.addEventListener('scroll', listener);
-        return () => {
-            window.removeEventListener('scroll', listener);
-        }
-    }, [])
-
   return (
-    <NavWrapper show={show}>
+    <NavWrapper>
         <Logo>
         <img
             alt="logo"
             src="/images/apple-logo.png"
-            onClick={() => (window.location.href = "/")}
+            onClick={() => (window.location.href = "/main")}
         /> 
         </Logo>
+
+        <Input
+            type="text"
+            className="nav_input"
+            value={searchValue}
+            onChange={handleChange}
+            placeholder="영화를 검색해주세요."
+        />
+
+        <Login>로그인</Login>
+
     </NavWrapper>
   )
 }
+
+    const Input = styled.input`
+        position: fixed;
+        left: 50%;
+        transform: translate(-50%, 0);
+        background-color: rgba(0,0,0,0.5);
+        border-radius: 5px;
+        color: white;
+        padding: 5px;
+        border: 1px solid lightgray;
+    `
+
+    const Login = styled.a`
+        background-color: rgba(0,0,0,0.6);
+        padding: 8px 16px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        border: 1px solid #f9f9f9;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+
+        &:hover {
+        background-color: #f9f9f9;
+        color: #000;
+        border-color: transparent;
+        }
+    `
 
     const Logo = styled.a`
     padding: 0;
@@ -39,7 +71,6 @@ const Nav = () => {
     font-size: 0;
     display: inline-block;
     margin-bottom: 10px;
-
     img {
         display: block;
         width: 100%;
@@ -52,7 +83,7 @@ const Nav = () => {
     left: 0;
     right: 0;
     height: 70px;
-    background-color: ${props => props.show === "true" ? "#000000" : "#000000"};
+    background-color: #000000;
     display: flex;
     justify-content: space-between;
     align-items: center;

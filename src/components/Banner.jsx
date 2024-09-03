@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import './Banner.css';
 import axios from '../api/axios';
 import requests from '../api/requests';
-import styled from 'styled-components';
+import {styled} from 'styled-components';
 
 const Banner = () => {
 
