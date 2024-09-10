@@ -1,18 +1,57 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {styled} from "styled-components";
+import app from "../firebase";
+
+    const initialUserData = localStorage.getItem('userData') ? JSON.parse(localStorage.getItem('userData')) : {}
 
     const Nav = () => {
 
+    const [userData, setUserData] = useState(initialUserData)
     const [searchValue, setSearchValue] = useState('')
 
     const navigate = useNavigate()
+    const{pathname} = useLocation()
 
+    const auth = getAuth(app);
+
+    const provider = new GoogleAuthProvider();
 
     const handleChange = (e) => {
         setSearchValue(e.target.value)
         navigate(`/search?q=${e.target.value}`)
     }
+
+    const handleAuth = () => {
+        signInWithPopup(auth, provider)
+            .then((result) => {
+                setUserData(result.user)
+                localStorage.setItem('userData', JSON.stringify(result.user))
+            })
+            .catch((error) => {
+                alert(error.message);
+            })
+    }
+
+    const handleLogOut = () => {
+        signOut(auth).then(() => {
+            setUserData({})
+            localStorage.removeItem('userData')
+        }).catch((error) => {
+            alert(error.message)
+        })
+    }
+
+    useEffect(() => {
+        onAuthStateChanged(auth, (user) => {
+            if(!user) {
+                navigate('/');  
+            } else if(user && pathname === '/') {
+                navigate('/main');
+            }
+        })
+    }, [auth, navigate, pathname])
 
   return (
     <NavWrapper>
@@ -24,19 +63,78 @@ import {styled} from "styled-components";
         /> 
         </Logo>
 
-        <Input
+        {pathname === "/" ? (
+        <Login
+            onClick={handleAuth}
+        >
+            로그인
+        </Login>
+        ):
+            (
+            <Input
             type="text"
             className="nav_input"
             value={searchValue}
             onChange={handleChange}
             placeholder="영화를 검색해주세요."
         />
+            )
+        }
 
-        <Login>로그인</Login>
+        {pathname !== '/' ?
+            <SignOut>
+                <UserImg src={userData.photoURL} alt={userData.displayName} />
+                <DropDown>
+                    <span onClick={handleLogOut}>
+                        Sign Out
+                    </span>
+                </DropDown>
+            </SignOut>
+            :
+                null
+        }
 
     </NavWrapper>
   )
 }
+
+    const UserImg =styled.img`
+        border-radius: 50%;
+        width: 100%;
+        height: 100%;
+    `
+
+    const DropDown = styled.div`
+        position: absolute;
+        top: 48px;
+        right: 0px;
+        background: rgb(19, 19, 19);
+        border: 1px solid rgba(151, 151, 151, 0.34);
+        border-radius: 4px;
+        box-shadow: rgb(0 0 0 / 50%) 0px 0px 18px 0px;
+        padding: 10px;
+        font-size: 14px;
+        letter-spacing: 3px;
+        width: 100px;
+        opacity: 0;
+    `
+
+    const SignOut = styled.div`
+        position: relative;
+        height: 48px;
+        width: 48px
+        display: flex;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            ${DropDown} {
+                opacity: 1;
+                transition-duration: 1s;
+            }
+        }
+    `
 
     const Input = styled.input`
         position: fixed;
@@ -66,30 +164,30 @@ import {styled} from "styled-components";
     `
 
     const Logo = styled.a`
-    padding: 0;
-    width: 70px;
-    font-size: 0;
-    display: inline-block;
-    margin-bottom: 10px;
-    img {
+        padding: 0;
+        width: 70px;
+        font-size: 0;
+        display: inline-block;
+        margin-bottom: 10px;
+        img {
         display: block;
         width: 100%;
     }
     `
 
     const NavWrapper = styled.nav`
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 70px;
-    background-color: #000000;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 36px;
-    letter-spacing: 16px;
-    z-index: 3;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background-color: #000000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 36px;
+        letter-spacing: 16px;
+        z-index: 3;
     `
 
 export default Nav
